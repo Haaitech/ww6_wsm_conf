@@ -79,7 +79,6 @@ class App(customtkinter.CTk):
 
     def saveAs(self):
         self.Bs_wsm_data
-        # self.WSM_FILE_NAME
 
         f = filedialog.asksaveasfile(mode='w', defaultextension=".wsm")
         if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
@@ -111,7 +110,7 @@ class App(customtkinter.CTk):
                     for band in knownBands:
                         receiverRange = knownBands[band]
                         if receiver['start'] == receiverRange['start'] and receiver['end'] == receiverRange['end']:
-                            receiver['band'] = band
+                            receiver['band'] = band.lower()
                             break
         elif any(y['model'] != receiver['model'] for y  in self.receiver_list):
             print("could'nt find that specific receiver model")
@@ -120,15 +119,20 @@ class App(customtkinter.CTk):
 
     def setNewFrequentie(self,receiver, freqPlot):
         newFreq = None
+
         for freq in freqPlot:
-            # if receiver['model']
-            pass
+            
+            if freq['model'] == receiver['model'] and freq['band'] == receiver['band'] and freq['freeToUse'] == True: 
+                newFreq = freq['value']
+                freq['freeToUse'] = False
+                break
+            else:
+                continue
 
         return newFreq
 
     def convertFile(self):
-
-        
+      
         if self.WW6_FILE_PATH != None and len(self.WW6_FILE_PATH) > 0 and self.WSM_FILE_PATH != None and len(self.WSM_FILE_PATH) > 0:
             try:
                 #   Variables for creating specific structures so assigning data becomes easyer
@@ -160,11 +164,16 @@ class App(customtkinter.CTk):
                     if len(item.find('model').contents) > 0:
                         model = item.find('model').contents[0].replace(' ','')
                     else:
-                        model = None
+                        model = 'Spare Frequentie'
 
-                    freq_combie = [model, band, value, True]
+                    new_freq = {
+                        "model":model, 
+                        "band":band, 
+                        "value":value, 
+                        "freeToUse":True
+                        }
                     
-                    ww6_freq_plot.append(freq_combie)
+                    ww6_freq_plot.append(new_freq)
 
 
                 #   for each instance of an receiver object found in the wsm file extract: lower freq limit, upper freq limit,
@@ -173,29 +182,36 @@ class App(customtkinter.CTk):
                 #   band name and the is free value equals True assign the frequency as new_freq, then break out of the loop and continue with the next receiver.
                 #   do this for each receiver and when done write to a new .wsm file.  
 
-
                 for item in receicers:
-
+                    
                     lower_freq_limit = item.find('LowerFrequencyLimit').contents[0]
                     uper_freq_limit = item.find('UpperFrequencyLimit').contents[0]
-                    current_frequency = item.find('CurrentFrequency').contents[0]
+                    current_frequency = item.find('CurrentFrequency')
                     receiver_type = item.get('Type')
 
 
                     receiver = {
                         "model":receiver_type,
                         "band": None,
-                        "currentFreq":current_frequency,
+                        "currentFreq":current_frequency.contents[0],
                         "start":lower_freq_limit,
                         "end":uper_freq_limit
                     }
 
                     receiver = self.matchReceiverToFreqBand(receiver)
 
-
                     new_freq = self.setNewFrequentie(receiver,ww6_freq_plot)
 
+                    print(current_frequency)
+                    print(new_freq)
+
                     current_frequency.string = new_freq
+
+                    print(current_frequency)
+
+
+        
+
 
 
                 self.changeColor(self.label5,'#4cb944')
@@ -208,7 +224,6 @@ class App(customtkinter.CTk):
         else:
             self.changeColor(self.label5,'#DA2C38')
             self.FILE_CONVERTED_TEXT.set('Hmm it seems like we are missing a file or two!')
-
 
 if __name__ == "__main__":
     app = App()
