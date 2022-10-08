@@ -131,6 +131,9 @@ class App(customtkinter.CTk):
 
         return newFreq
 
+    def convertToWw6Inventory():
+        pass
+
     def convertFile(self):
       
         if self.WW6_FILE_PATH != None and len(self.WW6_FILE_PATH) > 0 and self.WSM_FILE_PATH != None and len(self.WSM_FILE_PATH) > 0:
@@ -202,16 +205,7 @@ class App(customtkinter.CTk):
 
                     new_freq = self.setNewFrequentie(receiver,ww6_freq_plot)
 
-                    print(current_frequency)
-                    print(new_freq)
-
                     current_frequency.string = new_freq
-
-                    print(current_frequency)
-
-
-        
-
 
 
                 self.changeColor(self.label5,'#4cb944')
